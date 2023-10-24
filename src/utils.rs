@@ -22,11 +22,14 @@ pub fn is_sorted(arr: &Vec<i32>) -> bool {
     true
 }
 
+#[derive(Clone, Copy)]
 pub struct InstructionCounter {
-    comparison_count: u128,
-    array_access_count: u128,
-    div_count: u128,
-    bitwise_count: u128
+    pub comparison_count: u128,
+    pub array_access_count: u128,
+    pub mod_count: u128,
+    pub div_count: u128,
+    pub bitwise_count: u128,
+    pub algorithm_error: bool
 }
 
 

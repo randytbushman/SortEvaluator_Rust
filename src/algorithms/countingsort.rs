@@ -1,13 +1,15 @@
-use crate::utils::find_min_max;
+use crate::utils::{find_min_max, InstructionCounter};
 
 
-pub fn sort(arr: &mut [i32]) {
+pub fn sort(arr: &mut [i32], instruction_counter: InstructionCounter) {
+
+
     let mut aux_arr = vec![0i32; arr.len()];
     let (min_val, max_val) = find_min_max(&arr);
     let mut counting_arr: Vec<usize> = vec![0usize; (max_val - min_val + 1) as usize];
 
     let keys: Vec<usize> = arr.iter().map(|&x| ((x - min_val) as usize)).collect();
-
+    
     counting_key_sort(arr, &mut aux_arr, &mut counting_arr, &keys, true);  // Sort based on the last digit
 }
 

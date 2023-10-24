@@ -1,8 +1,8 @@
-use crate::utils::find_min_max;
+use crate::utils::{find_min_max, InstructionCounter};
 use crate::algorithms::countingsort::counting_key_sort;
 
 
-pub fn sort(arr: &mut [i32], radix: u32) {
+pub fn sort(arr: &mut [i32], radix: u32, instruction_counter: InstructionCounter) {
     let mut aux_arr = vec![0i32; arr.len()];
     let (min_val, mut max_val) = find_min_max(&arr);
 
