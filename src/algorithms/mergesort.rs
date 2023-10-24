@@ -62,7 +62,7 @@ fn merge(arr: &mut [i32], aux_arr: &mut [i32], start_idx: usize, mid_idx: usize,
         k += 1;
     }
 
-    ic.array_access_count += 2 * arr.len();
-    ic.comparison_count += arr.len() + 1;
+    ic.array_access_count += 2 * arr.len() as u128;
+    ic.comparison_count += arr.len() as u128 + 1;
     arr.clone_from_slice(&aux_arr);
 }

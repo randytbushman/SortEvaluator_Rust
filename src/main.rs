@@ -91,6 +91,11 @@ fn main() {
 
             for (i, alg) in algorithms.iter().enumerate() {
                 alg(&mut *arr, alg_instruction_counter);
+                if alg_instruction_counter.algorithm_error {
+                    experienced_error[i] = true;
+                    continue;
+                }
+
                 if !is_sorted(&arr) {
                     println!("NOPE")
                 }

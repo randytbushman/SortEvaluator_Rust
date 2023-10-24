@@ -1,12 +1,20 @@
-pub fn find_min_max(arr: &[i32]) -> (i32, i32) {
+pub fn find_min_max(arr: &[i32], mut instruction_counter: InstructionCounter) -> (i32, i32) {
+    instruction_counter.array_access_count += 1;
     let mut min_val = arr[0];
     let mut max_val = min_val;
 
+    instruction_counter.comparison_count += 1;  // Initial for loop comparison
     for &num in arr.iter() {
+        instruction_counter.comparison_count += 1; // For loop comparison
+
         if num < min_val {
+            instruction_counter.comparison_count += 1;
             min_val = num;
         } else if num > max_val {
+            instruction_counter.comparison_count += 2;
             max_val = num;
+        } else {
+            instruction_counter.comparison_count += 2;
         }
     }
 
