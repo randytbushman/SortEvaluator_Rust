@@ -70,7 +70,7 @@ fn main() {
         Box::new(|arr, ic| algorithms::qr_sort::sort(arr, if divisor_radix > 0 {divisor_radix} else {arr.len()}, true, true, ic)),
     ];
 
-    let experienced_error = vec![false; algorithms.len()];
+    let mut experienced_error = vec![false; algorithms.len()];
     let mut alg_instruction_counter;
 
 
