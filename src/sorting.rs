@@ -1,3 +1,5 @@
+use rayon::join;
+
 pub fn merge_sort(arr: &mut [i32]) {
     if arr.len() > 1 {
         let mid = arr.len() >> 1;
@@ -49,6 +51,33 @@ pub fn quicksort(arr: &mut [i32]) {
     }
 }
 
+pub fn parallel_quicksort(arr: &mut [i32], workers: Option<usize>) {
+    // Set the default number of workers equal to the number of available cores + 1
+    let workers = workers.unwrap_or(
+        std::thread::available_parallelism().unwrap().get() + 1
+    );
+    
+    // Initialize a thread pool  
+    let pool = rayon::ThreadPoolBuilder::new()
+        .num_threads(workers)
+        .build()
+        .expect("Failed to create pool");
+    
+    // Execute 
+    pool.install(|| parallel_quicksort_inner(arr));
+}
+
+fn parallel_quicksort_inner(arr: &mut [i32]) {
+    if arr.len() > 1 {
+        let pivot_index = quicksort_partition(arr);
+        let (left, right) = arr.split_at_mut(pivot_index);
+        join(
+            || { parallel_quicksort_inner(left)},
+            || { parallel_quicksort_inner(right)},
+        );
+    }
+}
+
 fn quicksort_partition(arr: &mut [i32]) -> usize{
     let mut pivot_index = 0;
     let pivot_value = arr[0];
@@ -73,11 +102,13 @@ pub fn counting_sort(arr: &mut[i32], keys: Option<&[i32]>) {
     // find min, max, then range
     let (min, max) = find_min_max(&keys);
 
-    // Implies all the elements in keys have equal keys
+    // Implies all the elements in have equal keys, making arr sorted
     if min == max { return }
 
-    // Create an uninitialized i32 auxiliary array
+    // Initialize an auxiliary array meant to temporarily store the values of arr
     let mut aux_arr: Vec<i32> = vec![0; arr.len()];
+    
+    // Initialize a counting array that tracks the occurrence counts of each key
     let mut counting_arr = vec![0; (max - min + 1) as usize];
 
     // Count the number of occurrences of k in keys

@@ -1,32 +1,35 @@
-mod utils;
-mod algorithms;
-
 extern crate rand;
-use rand::Rng;
+mod utils;
+mod sorting;
 use rand::seq::SliceRandom;
-use rand::thread_rng;
-
 use clap::Parser;
-use crate::utils::{InstructionCounter, is_sorted, linspace};
+use rand::rng;
+use crate::sorting::{counting_sort, merge_sort, qr_sort, quicksort, radix_sort};
+use crate::utils::{is_sorted, linspace};
+use std::time::Instant;
 
 /// Program to compare performance of sorting algorithms
 
 #[derive(Parser)]
+#[command(
+    name = "sort_eval",
+    about = ""
+)]
 struct Args {
     /// Number of sorting trials to execute
     #[arg(short = 't', default_value_t = 1)]
-    trials: u32,
+    trials: usize,
 
     /// The size of the smallest array to sort
-    #[arg(short = 'i', default_value_t = 10)]
-    initial_length: usize,
+    #[arg(short = 's', default_value_t = 10)]
+    start_length: usize,
 
     /// The size of the largest array to sort
-    #[arg(short = 'f', default_value_t = 100)]
-    final_length: usize,
+    #[arg(short = 'e', default_value_t = 100)]
+    end_length: usize,
 
     /// The length in which an array increments after each trial period
-    #[arg(short = 'l', default_value_t = 10)]
+    #[arg(short = 'i', default_value_t = 10)]
     length_increment: usize,
 
     /// The minimum possible array value to sort
@@ -37,77 +40,57 @@ struct Args {
     #[arg(short = 'M', default_value_t = 100)]
     max_value: i32,
 
-    /// The number system radix to use in Radix Sort / the divisor it use in QR Sort
-    #[arg(short = 'r', long, default_value_t = 16)]
-    divisor_radix: usize,
-
     /// The maximum number of threads used
-    #[arg(short = 'T', default_value_t = 5)]
+    #[arg(short = 't', default_value_t = 5)]
     threads: u32,
-
-    /// The output filepath location. Outputs are csv-formatted and should have a .csv extension
-    #[arg(short = 'o', default_value = "")]
-    output_filepath: String
 }
 
 
 
 fn main() {
     let args = Args::parse();
-    let min_value: i32 = args.min_value;
-    let max_value: i32 = args.max_value;
-    let trials: u32 = args.trials;
-    let divisor_radix = args.divisor_radix;
 
-    let algorithms: [Box<dyn Fn(&mut [i32], InstructionCounter)>; 8] = [
-        Box::new(algorithms::quicksort::sort),
-        Box::new(algorithms::mergesort::sort),
-        Box::new(algorithms::countingsort::sort),
-        Box::new(|arr, ic| algorithms::radixsort::sort(arr, if divisor_radix > 0 { divisor_radix } else { arr.len() } as u32, ic)),
-        Box::new(|arr, ic| algorithms::qr_sort::sort(arr, if divisor_radix > 0 {divisor_radix} else {arr.len()}, false, false, ic)),
-        Box::new(|arr, ic| algorithms::qr_sort::sort(arr, if divisor_radix > 0 {divisor_radix} else {arr.len()}, true, false, ic)),
-        Box::new(|arr, ic| algorithms::qr_sort::sort(arr, if divisor_radix > 0 {divisor_radix} else {arr.len()}, false, true, ic)),
-        Box::new(|arr, ic| algorithms::qr_sort::sort(arr, if divisor_radix > 0 {divisor_radix} else {arr.len()}, true, true, ic)),
+    let trials = args.trials;
+    let start_length = args.start_length;
+    let end_length = args.end_length;
+    let length_increment = args.length_increment;
+    
+    let min_value = args.min_value;
+    let max_value = args.max_value;
+    let threads = args.threads;
+
+    // A list of algorithms to evaluate
+    let algorithms = [
+        |arr| {merge_sort(arr)},
+        |arr| {quicksort(arr)},
+        |arr| {counting_sort(arr, None)},
+        |arr| {radix_sort(arr, None)},
+        |arr| {qr_sort(arr, None)}
     ];
 
-    let mut experienced_error = vec![false; algorithms.len()];
-    let mut alg_instruction_counter;
+    // An array that tracks each algorithm's execution time
+    let mut algorithm_times: Vec<u128> = vec![0; algorithms.len()];
 
+    for arr_len in (start_length..end_length).step_by(length_increment) {
 
-    for arr_len in (args.initial_length..args.final_length).step_by(args.length_increment) {
+        // Initialize a linearly spaced array
         let mut arr = linspace(min_value, max_value, arr_len);
-
-        alg_instruction_counter = InstructionCounter {
-            comparison_count: 0,
-            array_access_count: 0,
-            mod_count: 0,
-            div_count: 0,
-            bitwise_count: 0,
-            algorithm_error: false
-        };
+        let mut arr_copy = vec![0; arr.len()];
 
         for _ in 0..trials {
-            arr.shuffle(&mut thread_rng());
+            arr.shuffle(&mut rng());
 
-            for (i, alg) in algorithms.iter().enumerate() {
-                alg(&mut *arr, alg_instruction_counter);
-                if alg_instruction_counter.algorithm_error {
-                    experienced_error[i] = true;
-                    continue;
-                }
+            for (i, sort_fn) in algorithms.iter().enumerate() {
+                arr_copy.clone_from(&arr);
 
-                if !is_sorted(&arr) {
-                    println!("NOPE")
-                }
+                let start = Instant::now();
+                sort_fn(arr_copy);
+                // Execute the sorting algorithm 
+
+                algorithm_times[i] += start.elapsed().as_millis();
             }
-
         }
-
-        // Handle processing here
-
-
     }
-
 
 
 
