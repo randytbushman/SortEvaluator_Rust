@@ -1,4 +1,4 @@
-pub fn is_sorted(arr: &Vec<i32>) -> bool {
+pub fn is_sorted(arr: &[i32]) -> bool {
     for window in arr.windows(2) {
         if window[0] > window[1] {
             return false;

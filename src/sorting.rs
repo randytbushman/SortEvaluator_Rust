@@ -175,7 +175,7 @@ pub fn radix_sort(arr: &mut [i32], radix: Option<i32>) {
     let mut exp = 1;
     while range / exp > 0 {
         // Compute the next set of digits and use them to sort arr
-        let digits = arr.iter().map(|v| (v - min) % exp).collect::<Vec<i32>>();
+        let digits = arr.iter().map(|v| ((v - min) / exp) % radix).collect::<Vec<i32>>();
         counting_sort(arr, Some(&digits));
         exp *= radix;
     }
