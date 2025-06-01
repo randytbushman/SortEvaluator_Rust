@@ -4,7 +4,7 @@ mod sorting;
 use rand::seq::SliceRandom;
 use clap::Parser;
 use rand::{rng, SeedableRng};
-use crate::sorting::{counting_sort, merge_sort, qr_sort, quicksort, radix_sort};
+use crate::sorting::{counting_sort, merge_sort, parallel_quicksort, qr_sort, quicksort, radix_sort};
 use crate::utils::{is_sorted, linspace};
 use std::time::Instant;
 use rand::rngs::StdRng;
