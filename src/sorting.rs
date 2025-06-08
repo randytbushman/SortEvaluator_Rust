@@ -51,33 +51,6 @@ pub fn quicksort(arr: &mut [i32]) {
     }
 }
 
-pub fn parallel_quicksort(arr: &mut [i32], workers: Option<usize>) {
-    // Set the default number of workers equal to the number of available cores + 1
-    let workers = workers.unwrap_or(
-        std::thread::available_parallelism().unwrap().get() + 1
-    );
-    
-    // Initialize a thread pool  
-    let pool = rayon::ThreadPoolBuilder::new()
-        .num_threads(workers)
-        .build()
-        .expect("Failed to create pool");
-    
-    // Execute 
-    pool.install(|| parallel_quicksort_inner(arr));
-}
-
-fn parallel_quicksort_inner(arr: &mut [i32]) {
-    if arr.len() > 1 {
-        let pivot_index = quicksort_partition(arr);
-        let (left, right) = arr.split_at_mut(pivot_index);
-        join(
-            || { parallel_quicksort_inner(left)},
-            || { parallel_quicksort_inner(right)},
-        );
-    }
-}
-
 fn quicksort_partition(arr: &mut [i32]) -> usize{
     let mut pivot_index = 0;
     let pivot_value = arr[0];

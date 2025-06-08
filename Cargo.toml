@@ -9,3 +9,4 @@ edition = "2024"
 rayon = "1.10.0"
 rand = "0.9.1"
 clap = { version = "4.5.39", features = ["derive"] }
+itertools = "0.14.0"
