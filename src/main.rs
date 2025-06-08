@@ -3,17 +3,15 @@ mod sorting;
 mod utils;
 
 use crate::sorting::{counting_sort, merge_sort, qr_sort, quicksort, radix_sort};
-use crate::utils::{is_sorted, linspace};
-
+use crate::utils::{linspace};
 use std::fmt::Write;    
 use itertools::Itertools;
 use std::fs::File;
 use std::io::Write as IOWrite;
-// use std::io::Write;
 use clap::Parser;
 use rand::rngs::StdRng;
 use rand::seq::SliceRandom;
-use rand::{SeedableRng, rng};
+use rand::{SeedableRng};
 use std::time::Instant;
 
 /// Program to compare performance of sorting algorithms
@@ -73,7 +71,6 @@ fn main() {
     let max_value = args.max_value;
     let value_increment = args.value_increment;
     let output_dir = args.output_dir;
-    let threads = args.threads;
 
     // A list of algorithms to evaluate
     let algorithms: [fn(&mut [i32]); 5] = [
