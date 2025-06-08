@@ -39,13 +39,17 @@ struct Args {
     #[arg(short = 'm', default_value_t = 0)]
     min_value: i32,
 
-    /// The maximum possible array value to sort
-    #[arg(short = 'M', default_value_t = 100)]
-    max_value: i32,
+    ///
+    #[arg(short = 'M', long, value_delimiter = ',', value_parser = clap::value_parser!(i32), default_value = "100")]
+    max_values: Vec<i32>,
+    
+    // The maximum possible array value to sort
+    //#[arg(short = 'M', default_value_t = 100)]
+    //max_value: i32,
 
-    /// The value in which the array range increments after each experiment
-    #[arg(short = 'v', default_value_t = 10)]
-    value_increment: usize,
+    // The value in which the array range increments after each experiment
+    //#[arg(short = 'v', default_value_t = 10)]
+    //value_increment: usize,
 
     /// The maximum number of threads used
     #[arg(short = 'w', default_value_t = 5)]
@@ -68,8 +72,7 @@ fn main() {
     let end_length = args.end_length;
     let length_increment = args.length_increment;
     let min_value = args.min_value;
-    let max_value = args.max_value;
-    let value_increment = args.value_increment;
+    let max_values = args.max_values;
     let output_dir = args.output_dir;
 
     // A list of algorithms to evaluate
@@ -93,7 +96,8 @@ fn main() {
     // An array that tracks each algorithm's execution time
     let mut algorithm_times: Vec<u128> = vec![0; algorithms.len()];
 
-    for value_range in (min_value..=max_value).step_by(value_increment) {
+    for max_value in max_values.iter() {
+        println!("Begin experiment with range {min_value}-{max_value}");
 
         // A string that captures all the experiment information
         let mut experiment_text: String = std::iter::once("Length")
@@ -104,8 +108,9 @@ fn main() {
         // From start length to end length perform trials to evaluate algorithm performance
         for arr_len in (start_length..=end_length).step_by(length_increment) {
             
+            println!("Begin trials with length {arr_len}");
             // Initialize a linearly spaced array
-            let mut base_arr = linspace(min_value, value_range, arr_len);
+            let mut base_arr = linspace(min_value, *max_value, arr_len);
             let mut arr_copy = vec![0; arr_len];
 
             // Execute algorithm trials
@@ -148,7 +153,7 @@ fn main() {
         }
         
         // After completing an experiment by length, write the results to a file
-        let filename = format!("{output_dir}/{min_value}m-{value_range}M.csv");
+        let filename = format!("{output_dir}/{min_value}min_value-{max_value}max_value.csv");
         write_string_to_file(&filename, &experiment_text);
         
         println!("Done with experiment {filename}");
