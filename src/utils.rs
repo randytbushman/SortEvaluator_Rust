@@ -1,4 +1,4 @@
-pub fn is_sorted(arr: &[i32]) -> bool {
+pub fn is_sorted(arr: &[i64]) -> bool {
     for window in arr.windows(2) {
         if window[0] > window[1] {
             return false;
@@ -7,11 +7,11 @@ pub fn is_sorted(arr: &[i32]) -> bool {
     true
 }
 
-pub fn linspace(start: i32, end: i32, num_points: usize) -> Vec<i32> {
-    if num_points <= 1 {
+pub fn linspace(start: i64, end: i64, arr_length: usize) -> Vec<i64> {
+    if arr_length <= 1 {
         return vec![start];
     }
 
-    let step = (end - start) as f64 / (num_points - 1) as f64;
-    (0..num_points).map(|i| (start as f64 + step * i as f64).round() as i32).collect()
+    let step = (end - start) as f64 / (arr_length - 1) as f64;
+    (0..arr_length).map(|i| (start as f64 + step * i as f64).round() as i64).collect()
 }

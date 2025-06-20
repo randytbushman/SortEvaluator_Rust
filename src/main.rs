@@ -3,8 +3,8 @@ mod sorting;
 mod utils;
 
 use crate::sorting::{counting_sort, merge_sort, qr_sort, quicksort, radix_sort};
-use crate::utils::{linspace};
-use std::fmt::Write;    
+use crate::utils::{is_sorted, linspace};
+use std::fmt::{format, Write};    
 use itertools::Itertools;
 use std::fs::File;
 use std::io::Write as IOWrite;
@@ -37,20 +37,12 @@ struct Args {
 
     /// The minimum possible array value to sort
     #[arg(short = 'm', default_value_t = 0)]
-    min_value: i32,
+    min_value: i64,
 
     ///
-    #[arg(short = 'M', long, value_delimiter = ',', value_parser = clap::value_parser!(i32), default_value = "100")]
-    max_values: Vec<i32>,
+    #[arg(short = 'M', long, value_delimiter = ',', value_parser = clap::value_parser!(i64), default_value = "100")]
+    max_values: Vec<i64>,
     
-    // The maximum possible array value to sort
-    //#[arg(short = 'M', default_value_t = 100)]
-    //max_value: i32,
-
-    // The value in which the array range increments after each experiment
-    //#[arg(short = 'v', default_value_t = 10)]
-    //value_increment: usize,
-
     /// The maximum number of threads used
     #[arg(short = 'w', default_value_t = 5)]
     threads: usize,
@@ -67,7 +59,7 @@ fn main() {
     let mut rng = StdRng::seed_from_u64(seed);
 
     // Parse command line arguments
-    let trials = args.trials;
+    let trial_count = args.trials;
     let start_length = args.start_length;
     let end_length = args.end_length;
     let length_increment = args.length_increment;
@@ -76,7 +68,7 @@ fn main() {
     let output_dir = args.output_dir;
 
     // A list of algorithms to evaluate
-    let algorithms: [fn(&mut [i32]); 5] = [
+    let algorithms: [fn(&mut [i64]); 5] = [
         merge_sort,
         quicksort,
         |arr| counting_sort(arr, None),
@@ -96,10 +88,11 @@ fn main() {
     // An array that tracks each algorithm's execution time
     let mut algorithm_times: Vec<u128> = vec![0; algorithms.len()];
 
+    // Iterate through the given max values (users can input many max values that make a new experiment)
     for max_value in max_values.iter() {
         println!("Begin experiment with range {min_value}-{max_value}");
 
-        // A string that captures all the experiment information
+        // A string that captures all the experiment headers information
         let mut experiment_text: String = std::iter::once("Length")
             .chain(algorithm_names.iter().copied())
             .join(",")
@@ -107,49 +100,50 @@ fn main() {
         
         // From start length to end length perform trials to evaluate algorithm performance
         for arr_len in (start_length..=end_length).step_by(length_increment) {
-            
             println!("Begin trials with length {arr_len}");
-            // Initialize a linearly spaced array
+           
+            // Initialize a linearly spaced array and a copy
             let mut base_arr = linspace(min_value, *max_value, arr_len);
             let mut arr_copy = vec![0; arr_len];
 
-            // Execute algorithm trials
-            for _ in 0..trials {
-                // Shuffle the base array for each new trial
+            // Each experiment executes `trial_count` trials
+            // Each algorithm sorts the same copy of the base array 
+            // The base array is shuffled for every trial
+            for _ in 0..trial_count {
                 base_arr.shuffle(&mut rng);
 
-                // Iterate though each algorithm callable and capture execution time
+                // Iterate though each algorithm, execute it, and capture its runtime
                 for (i, sort_fn) in algorithms.iter().enumerate() {
+                    
                     // Copy the base array so each algorithm sorts the same sequences
                     arr_copy.clone_from(&base_arr);
 
-                    // Execute the sorting algorithm and track the time it takes
+                    // Execute the sorting algorithm and track the time (ms) it takes
                     let start = Instant::now();
                     sort_fn(&mut arr_copy);
-
-                    //if !is_sorted(&arr_copy) {
-                    //    eprintln!("Failed to sort array using {}.", algorithm_names[i]);
-                    // }
-
                     algorithm_times[i] += start.elapsed().as_micros();
+
+                    if !is_sorted(&arr_copy) {
+                        eprintln!("Failed to sort array using {}.", algorithm_names[i]);
+                    }
                 }
             }
             
             // Write the array length to the experiments string
-            write!(&mut experiment_text, "{}", arr_len).expect("Could not write array length to experiment string");
+            write!(&mut experiment_text, "{arr_len}").expect("Could not write array length to experiment string");
             
-            // Compute the averages of each algorithm time 
+            // Compute the averages of each algorithm time and reset the array
             let averages = algorithm_times
                 .iter_mut()
                 .map(|time| {
-                    let average = *time / (trials as u128);
+                    let average = *time / (trial_count as u128);
                     *time = 0;
-                    format!(",{}", average)
+                    format!(",{average}")
                 })
                 .join("");
 
             // Write the averages to the experiment_text
-            write!(experiment_text, "{}\n", averages).expect("Could not averages write to string");
+            write!(experiment_text, "{averages}\n").expect("Could not averages write to string");
         }
         
         // After completing an experiment by length, write the results to a file

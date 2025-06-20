@@ -1,6 +1,4 @@
-use rayon::join;
-
-pub fn merge_sort(arr: &mut [i32]) {
+pub fn merge_sort(arr: &mut [i64]) {
     if arr.len() > 1 {
         let mid = arr.len() >> 1;
         merge_sort(&mut arr[0.. mid]);
@@ -9,7 +7,7 @@ pub fn merge_sort(arr: &mut [i32]) {
     }
 }
 
-pub fn merge(arr: &mut [i32]) {
+pub fn merge(arr: &mut [i64]) {
     let mid = arr.len() >> 1;
     let left = &arr[0..mid];
     let right = &arr[mid..];
@@ -17,7 +15,7 @@ pub fn merge(arr: &mut [i32]) {
     let mut i = 0;
     let mut j = 0;
     let mut k = 0;
-    let mut aux_arr: Vec<i32> = vec![0; arr.len()];
+    let mut aux_arr: Vec<i64> = vec![0; arr.len()];
     
     while i < left.len() && j < right.len() {
         if left[i] <= right[j] {
@@ -43,7 +41,7 @@ pub fn merge(arr: &mut [i32]) {
 
 /// Sorts an array in-place using quicksort
 /// * arr - the array to sort
-pub fn quicksort(arr: &mut [i32]) {
+pub fn quicksort(arr: &mut [i64]) {
     if arr.len() > 1 {
         let pivot_index = quicksort_partition(arr);
         quicksort(&mut arr[0..pivot_index]);
@@ -51,7 +49,7 @@ pub fn quicksort(arr: &mut [i32]) {
     }
 }
 
-fn quicksort_partition(arr: &mut [i32]) -> usize{
+fn quicksort_partition(arr: &mut [i64]) -> usize{
     let mut pivot_index = 0;
     let pivot_value = arr[0];
 
@@ -65,7 +63,7 @@ fn quicksort_partition(arr: &mut [i32]) -> usize{
     pivot_index
 }
 
-pub fn counting_sort(arr: &mut[i32], keys: Option<&[i32]>) {
+pub fn counting_sort(arr: &mut[i64], keys: Option<&[i64]>) {
     // An empty array is trivially sorted
     if arr.len() == 0 { return }
     
@@ -79,7 +77,7 @@ pub fn counting_sort(arr: &mut[i32], keys: Option<&[i32]>) {
     if min == max { return }
 
     // Initialize an auxiliary array meant to temporarily store the values of arr
-    let mut aux_arr: Vec<i32> = vec![0; arr.len()];
+    let mut aux_arr: Vec<i64> = vec![0; arr.len()];
     
     // Initialize a counting array that tracks the occurrence counts of each key
     let mut counting_arr = vec![0; (max - min + 1) as usize];
@@ -105,7 +103,7 @@ pub fn counting_sort(arr: &mut[i32], keys: Option<&[i32]>) {
     arr.copy_from_slice(&aux_arr);
 }
 
-pub fn qr_sort(arr: &mut [i32], divisor: Option<i32>) {
+pub fn qr_sort(arr: &mut [i64], divisor: Option<i64>) {
     // An empty array is trivially sorted
     if arr.len() == 0 { return }
 
@@ -121,17 +119,19 @@ pub fn qr_sort(arr: &mut [i32], divisor: Option<i32>) {
 
     // Let default d value be sqrt(range(arr))
     let d = divisor.unwrap_or(range.isqrt());
-
-    // Sort by remainders
-    let remainders: Vec<i32> = arr.iter().map(|v| (v - min) % d).collect();
-    counting_sort(arr, Some(&remainders));
-
-    // Sort by quotients
-    let quotients: Vec<i32> = arr.iter().map(|v| (v - min) / d).collect();
-    counting_sort(arr, Some(&quotients));
+    
+    // First compute then sort by the remainder keys 
+    let mut keys: Vec<i64> = arr.iter().map(|v| (v - min) % d).collect();
+    counting_sort(arr, Some(&keys));
+    
+    // Compute then sort by the quotients keys
+    for (i, key) in keys.iter_mut().enumerate() {
+        *key = (arr[i] - min) / d;
+    }
+    counting_sort(arr, Some(&keys));
 }
 
-pub fn radix_sort(arr: &mut [i32], radix: Option<i32>) {
+pub fn radix_sort(arr: &mut [i64], radix: Option<i64>) {
     // An empty array is trivially sorted
     if arr.len() == 0 { return }
 
@@ -143,18 +143,23 @@ pub fn radix_sort(arr: &mut [i32], radix: Option<i32>) {
     let range = max - min;
 
     // Implies all the elements in arr have equal keys
-    let radix = radix.unwrap_or(arr.len() as i32);
+    let radix = radix.unwrap_or(arr.len() as i64);
+    
+    // Create a buffer to store the current iteration's radixes of each `arr[i]` in `digit[i]`
+    let mut digits: Vec<i64> = vec![0; arr.len()];
     
     let mut exp = 1;
     while range / exp > 0 {
         // Compute the next set of digits and use them to sort arr
-        let digits = arr.iter().map(|v| ((v - min) / exp) % radix).collect::<Vec<i32>>();
+        for (a_value, digit) in arr.iter().zip(digits.iter_mut()) {
+            *digit = ((*a_value - min) / exp) % radix;
+        }
         counting_sort(arr, Some(&digits));
         exp *= radix;
     }
 }
 
-fn find_min_max(arr: &[i32]) -> (i32, i32){
+fn find_min_max(arr: &[i64]) -> (i64, i64){
     assert!(!arr.is_empty(), "slice must contain at least one element");
     
     let mut min = arr[0];
