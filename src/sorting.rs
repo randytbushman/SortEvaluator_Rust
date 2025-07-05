@@ -1,13 +1,26 @@
-pub fn merge_sort(arr: &mut [i64]) {
+pub fn merge_sort(arr: &mut [i64], aux_arr_buffer: &mut [i64]) {
+    // Ensure buffer is correct size
+    assert_eq!(
+        arr.len(),
+        aux_arr_buffer.len(),
+        "buffer length mismatch arr = {}, aux_arr = {})",
+        arr.len(),
+        aux_arr_buffer.len()
+    );
+    merge_sort_inner(arr, aux_arr_buffer);
+}
+
+
+fn merge_sort_inner(arr: &mut [i64], aux_arr_buffer: &mut [i64]) {
     if arr.len() > 1 {
         let mid = arr.len() >> 1;
-        merge_sort(&mut arr[0.. mid]);
-        merge_sort(&mut arr[mid..]);
-        merge(arr);
+        merge_sort(&mut arr[0.. mid], &mut aux_arr_buffer[0.. mid]);
+        merge_sort(&mut arr[mid..], &mut aux_arr_buffer[mid..]);
+        merge(arr, aux_arr_buffer);
     }
 }
 
-pub fn merge(arr: &mut [i64]) {
+pub fn merge(arr: &mut [i64], aux_arr_buffer: &mut [i64]) {
     let mid = arr.len() >> 1;
     let left = &arr[0..mid];
     let right = &arr[mid..];
@@ -15,14 +28,13 @@ pub fn merge(arr: &mut [i64]) {
     let mut i = 0;
     let mut j = 0;
     let mut k = 0;
-    let mut aux_arr: Vec<i64> = vec![0; arr.len()];
-    
+
     while i < left.len() && j < right.len() {
         if left[i] <= right[j] {
-            aux_arr[k] = left[i];
+            aux_arr_buffer[k] = left[i];
             i += 1;
         } else {
-            aux_arr[k] = right[j];
+            aux_arr_buffer[k] = right[j];
             j += 1;
         }
         k += 1;
@@ -30,13 +42,13 @@ pub fn merge(arr: &mut [i64]) {
     
     // Copy the remaining left or right values to the end of the aux_arr
     if i < left.len() {
-        aux_arr[k..].copy_from_slice(&left[i..]);
+        aux_arr_buffer[k..].copy_from_slice(&left[i..]);
     } else {
-        aux_arr[k..].copy_from_slice(&right[j..]);
+        aux_arr_buffer[k..].copy_from_slice(&right[j..]);
     }
     
     // Copy the aux_arr to arr
-    arr.copy_from_slice(&aux_arr);
+    arr.copy_from_slice(&aux_arr_buffer);
 }
 
 /// Sorts an array in-place using quicksort
@@ -59,16 +71,28 @@ fn quicksort_partition(arr: &mut [i64]) -> usize{
             arr.swap(i, pivot_index);
         }
     }
+    
     arr.swap(0, pivot_index);
     pivot_index
 }
 
-pub fn counting_sort(arr: &mut[i64], keys: Option<&[i64]>) {
+/// Sorts an array using Counting Sort with the given keys (by default arr = keys)
+/// 
+pub fn counting_sort(arr: &mut[i64], keys: Option<&[i64]>, aux_arr_buffer: &mut[i64], counting_arr_buffer: &mut[usize]) {
     // An empty array is trivially sorted
     if arr.len() == 0 { return }
     
     // If no keys are specified, let the values in arr be their own keys
     let keys = keys.unwrap_or(arr);
+
+    // Ensures that the keys and auxiliary buffers are the correct size
+    assert!(
+        arr.len() == aux_arr_buffer.len() && arr.len() == keys.len(),
+        "buffer length mismatch arr = {}  aux = {}  keys = {}",
+        arr.len(),
+        aux_arr_buffer.len(),
+        keys.len(),
+    );
 
     // find min, max, then range
     let (min, max) = find_min_max(&keys);
@@ -76,39 +100,52 @@ pub fn counting_sort(arr: &mut[i64], keys: Option<&[i64]>) {
     // Implies all the elements in have equal keys, making arr sorted
     if min == max { return }
 
-    // Initialize an auxiliary array meant to temporarily store the values of arr
-    let mut aux_arr: Vec<i64> = vec![0; arr.len()];
+    // Ensures the counting_arr buffer is the correct size
+    assert!(
+        counting_arr_buffer.len() >= (max - min + 1) as usize,
+        "counting_arr_buffer length mismatch: range = {}, counting_arr_buffer length = {}",
+        max - min + 1,
+        counting_arr_buffer.len()
+    );
     
-    // Initialize a counting array that tracks the occurrence counts of each key
-    let mut counting_arr = vec![0; (max - min + 1) as usize];
+    // Use only the minimum buffer size needed for the counting array
+    let counting_arr_buffer = &mut counting_arr_buffer[..(max - min + 1) as usize];
 
     // Count the number of occurrences of k in keys
     for &k in keys {
-        counting_arr[(k - min) as usize] += 1;
+        counting_arr_buffer[(k - min) as usize] += 1;
     }
 
     // Perform cumulative sum
-    for i in 1..counting_arr.len() {
-        counting_arr[i] += counting_arr[i-1];
+    for i in 1..counting_arr_buffer.len() {
+        counting_arr_buffer[i] += counting_arr_buffer[i-1];
     }
     
     // Place elements into the auxiliary array based on their counts
     for i in (0..arr.len()).rev() {
         let new_index = (keys[i] - min) as usize;
-        counting_arr[new_index] -= 1;
-        aux_arr[counting_arr[new_index]] = arr[i];
+        counting_arr_buffer[new_index] -= 1;
+        aux_arr_buffer[counting_arr_buffer[new_index]] = arr[i];
     }
         
     // Copy the values back from aux_arr to arr
-    arr.copy_from_slice(&aux_arr);
+    arr.copy_from_slice(&aux_arr_buffer);
 }
 
-pub fn qr_sort(arr: &mut [i64], divisor: Option<i64>) {
+/// Sorts an i64 array using divisor = sqrt(n) (optimal) QR Sort
+/// 
+pub fn qr_sort(arr: &mut [i64], aux_arr_buffer: &mut[i64], keys_buffer: &mut[i64], counting_arr_buffer: &mut[usize]) {
     // An empty array is trivially sorted
     if arr.len() == 0 { return }
 
-    // validate custom radix before unwrap
-    if let Some(d) = divisor { assert!(d > 0, "divisor must exceed 0") }
+    // Ensures that the keys and auxiliary buffers are the correct size
+    assert!(
+        arr.len() == aux_arr_buffer.len() && arr.len() == keys_buffer.len(),
+        "buffer length mismatch arr = {}  aux = {}  keys = {}",
+        arr.len(),
+        aux_arr_buffer.len(),
+        keys_buffer.len(),
+    );
 
     // find min, max, then range
     let (min, max) = find_min_max(&arr);
@@ -116,46 +153,63 @@ pub fn qr_sort(arr: &mut [i64], divisor: Option<i64>) {
 
     // Implies all the elements in arr have equal keys
     if range == 0 { return }
-
-    // Let default d value be sqrt(range(arr))
-    let d = divisor.unwrap_or(range.isqrt());
     
-    // First compute then sort by the remainder keys 
-    let mut keys: Vec<i64> = arr.iter().map(|v| (v - min) % d).collect();
-    counting_sort(arr, Some(&keys));
+    // Set the divisor equal to the square root of the range
+    let divisor = range.isqrt();
     
-    // Compute then sort by the quotients keys
-    for (i, key) in keys.iter_mut().enumerate() {
-        *key = (arr[i] - min) / d;
+    // First compute, then sort by the remainder keys 
+    for (i, key) in keys_buffer.iter_mut().enumerate() {
+        *key = (arr[i] - min) % divisor;
     }
-    counting_sort(arr, Some(&keys));
+    counting_sort(arr, Some(keys_buffer), aux_arr_buffer, counting_arr_buffer);
+
+    // Reset the buffer for the next sorting pass
+    counting_arr_buffer.fill(0);
+    
+    // Compute then sort by the quotient keys
+    for (i, key) in keys_buffer.iter_mut().enumerate() {
+        *key = (arr[i] - min) / divisor;
+    }
+    counting_sort(arr, Some(keys_buffer), aux_arr_buffer, counting_arr_buffer);
 }
 
-pub fn radix_sort(arr: &mut [i64], radix: Option<i64>) {
+/// Sorts an i64 array using base-n Radix Sort
+/// 
+pub fn radix_sort(arr: &mut [i64], aux_arr_buffer: &mut[i64], keys_buffer: &mut[i64], counting_arr_buffer: &mut[usize]) {
     // An empty array is trivially sorted
     if arr.len() == 0 { return }
-
-    // validate custom radix before unwrap
-    if let Some(r) = radix { assert!(r > 1, "radix must exceed 1"); }
 
     // find min, max, then range
     let (min, max) = find_min_max(&arr);
     let range = max - min;
 
-    // Implies all the elements in arr have equal keys
-    let radix = radix.unwrap_or(arr.len() as i64);
-    
-    // Create a buffer to store the current iteration's radixes of each `arr[i]` in `digit[i]`
-    let mut digits: Vec<i64> = vec![0; arr.len()];
-    
+    // If the given radix value is None, default to arr.len()
+    let radix = arr.len() as i64;
+
+    // Ensures that the keys and auxiliary buffers are the correct size
+    assert!(
+        arr.len() == aux_arr_buffer.len() && arr.len() == keys_buffer.len(),
+        "buffer length mismatch arr = {}  aux = {}  keys = {}",
+        arr.len(),
+        aux_arr_buffer.len(),
+        keys_buffer.len(),
+    );
+
     let mut exp = 1;
-    while range / exp > 0 {
-        // Compute the next set of digits and use them to sort arr
-        for (a_value, digit) in arr.iter().zip(digits.iter_mut()) {
-            *digit = ((*a_value - min) / exp) % radix;
+    while exp <= range {
+        // Compute the digit keys to sort by
+        for (value, key) in arr.iter().zip(keys_buffer.iter_mut()) {
+            *key = (value - min) / exp % radix;
         }
-        counting_sort(arr, Some(&digits));
+
+        // Perform counting sort on the digits
+        counting_sort(arr, Some(&keys_buffer), aux_arr_buffer, counting_arr_buffer);
         exp *= radix;
+
+        // Reset the buffer if another pass is required
+        if exp <= range {
+            counting_arr_buffer.fill(0);
+        }
     }
 }
 
