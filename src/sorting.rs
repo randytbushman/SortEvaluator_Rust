@@ -155,7 +155,7 @@ pub fn qr_sort(arr: &mut [i64], aux_arr_buffer: &mut[i64], keys_buffer: &mut[i64
     if range == 0 { return }
     
     // Set the divisor equal to the square root of the range
-    let divisor = range.isqrt();
+    let divisor = range.isqrt() + 1;
     
     // First compute, then sort by the remainder keys 
     for (i, key) in keys_buffer.iter_mut().enumerate() {
