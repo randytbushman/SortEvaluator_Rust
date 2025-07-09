@@ -43,10 +43,10 @@ struct Args {
     min_value: i64,
 
     ///
-    #[arg(short = 'M', long, value_delimiter = ',', value_parser = clap::value_parser!(i64), default_value = "100000000")]
+    #[arg(short = 'M', long, value_delimiter = ',', value_parser = clap::value_parser!(i64), default_value = "1000000000000")]
     max_values: Vec<i64>,
 
-    #[arg(short = 'o', default_value_t = String::from("./results_release"))]
+    #[arg(short = 'o', default_value_t = String::from("./results"))]
     output_dir: String,
 }
 
@@ -80,18 +80,18 @@ fn main() {
 
     // A list of algorithms to evaluate
     let algorithms = [
-        run_merge_sort,
-        run_quicksort,
-        run_counting_sort,
+        //run_merge_sort,
+        //run_quicksort,
+        //run_counting_sort,
         run_radix_sort,
         run_qr_sort,
     ];
 
     // The accompanying names of the algorithms defined above
     let algorithm_names = [
-        "Merge Sort",
-        "Quicksort",
-        "Counting Sort",
+        //"Merge Sort",
+        //"Quicksort",
+        //"Counting Sort",
         "Radix Sort",
         "QR Sort",
     ];
@@ -103,7 +103,7 @@ fn main() {
     let mut sorting_buffers = SortingBuffers {
         aux_buffer: vec![0; end_length],
         keys_buffer: vec![0; end_length],
-        counting_buffer: vec![0; (max_range_value + 1) as usize],
+        counting_buffer: vec![0; ((max_range_value + 1) as usize).max(end_length)],
     };
     
     // Iterate through the given max values (users can input many max values that make a new experiment)

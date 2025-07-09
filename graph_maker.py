@@ -50,17 +50,23 @@ def main():
     Main function to generate and save the plots.
     """
     file_paths = [
+        #("./results/0min_value-10000max_value.csv", "m = 10,000"),
         ("./results/0min_value-100000max_value.csv", "m = 100,000"),
         ("./results/0min_value-1000000max_value.csv", "m = 1,000,000"),
         ("./results/0min_value-10000000max_value.csv", "m = 10,000,000"),
-        ("./results/0min_value-100000000max_value.csv", "m = 100,000,000")
+        ("./results/0min_value-100000000max_value.csv", "m = 100,000,000"),
+        ("./results/0min_value-1000000000max_value.csv", "m = 1,000,000,000"),
+        ("./results/0min_value-10000000000max_value.csv", "m = 10,000,000,000"),
+        ("./results/0min_value-100000000000max_value.csv", "m = 100,000,000,000"),
+        ("./results/0min_value-1000000000000max_value.csv", "m = 1,000,000,000,000"),
+        ("./results/0min_value-10000000000000max_value.csv", "m = 10,000,000,000,000"),
     ]
 
-    labels = ["A", "B", "C", "D"]
+    labels = ["A", "B", "C", "D", "E", "F", "G", "H"]
     x_col = "Length"
     exclude_cols = ["Quicksort", "Merge Sort", "Counting Sort"]
 
-    fig, axes = plt.subplots(2, 2, figsize=(14, 10))
+    fig, axes = plt.subplots(4, 2, figsize=(14, 10))
     max_y_values = []
 
     for ax, (csv_file, m_text), label in zip(axes.flatten(), file_paths, labels):
@@ -78,7 +84,7 @@ def main():
     axes[0, 0].legend(loc='upper left', fontsize=12)
 
     fig.tight_layout()
-    fig.savefig("figure.png", dpi=600)
+    fig.savefig("figure_qr_vs_radix_8.png", dpi=600)
     fig.show()
 
 
