@@ -46,10 +46,6 @@ struct Args {
     #[arg(short = 'M', long, value_delimiter = ',', value_parser = clap::value_parser!(i64), default_value = "100000000")]
     max_values: Vec<i64>,
 
-    /// The maximum number of threads used
-    #[arg(short = 'w', default_value_t = 5)]
-    threads: usize,
-
     #[arg(short = 'o', default_value_t = String::from("./results_release"))]
     output_dir: String,
 }
@@ -94,7 +90,7 @@ fn main() {
     // The accompanying names of the algorithms defined above
     let algorithm_names = [
         "Merge Sort",
-        "Quick Sort",
+        "Quicksort",
         "Counting Sort",
         "Radix Sort",
         "QR Sort",
