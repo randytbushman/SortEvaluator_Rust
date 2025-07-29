@@ -48,9 +48,9 @@ struct SortingExperiment {
 }
 
 impl SortingExperiment {
-    fn new_all_experiment() -> Self {
+    fn new_all() -> Self {
         Self {
-            trials:         5,
+            trials:         10,
             start_length:   10_000,
             end_length:     1_000_000,
             length_inc:     10_000,
@@ -63,17 +63,32 @@ impl SortingExperiment {
         }
     }
 
-    fn new_only_radix_sort_and_qr_sort() -> Self {
+    fn new_rs_qr() -> Self {
         Self {
-            trials:         5,
+            trials:         10,
             start_length:   10_000,
             end_length:     1_000_000,
             length_inc:     10_000,
             min_value:      0,
             max_values: (4..=12).map(|exp| 10i64.pow(exp)).collect(),
-            output_dir: "./results_radix_qr",
+            output_dir: "./results_radix_qr_dev",
             algorithm_name_headers: vec!["Radix Sort", "QR Sort"],
             algorithm_functions: vec![run_radix_sort, run_qr_sort],
+            random_seed_rng: StdRng::seed_from_u64(42),
+        }
+    }
+
+    fn new_qr_ms_qs_cs() -> Self {
+        Self {
+            trials:         10,
+            start_length:   10_000,
+            end_length:     1_000_000,
+            length_inc:     10_000,
+            min_value:      0,
+            max_values: vec![10i64.pow(10)],
+            output_dir: "./results_qr_ms_qs_cs",
+            algorithm_name_headers: vec!["Quicksort", "Merge Sort", "QR Sort"],
+            algorithm_functions: vec![run_quicksort, run_merge_sort, run_qr_sort],
             random_seed_rng: StdRng::seed_from_u64(42),
         }
     }
@@ -242,6 +257,6 @@ fn run_radix_sort(arr: &mut [i64], sorting_buffers: &mut SortingBuffers, range: 
 }
 
 fn main() {
-    SortingExperiment::new_only_radix_sort_and_qr_sort().run_experiment();
+    SortingExperiment::new_qr_ms_qs_cs().run_experiment();
     //SortingExperiment::new_all_experiment().run_experiment();
 }
