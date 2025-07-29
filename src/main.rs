@@ -86,7 +86,7 @@ impl SortingExperiment {
             length_inc:     10_000,
             min_value:      0,
             max_values: vec![10i64.pow(10)],
-            output_dir: "./results_qr_ms_qs_cs",
+            output_dir: "./results_qr_ms_qs",
             algorithm_name_headers: vec!["Quicksort", "Merge Sort", "QR Sort"],
             algorithm_functions: vec![run_quicksort, run_merge_sort, run_qr_sort],
             random_seed_rng: StdRng::seed_from_u64(42),

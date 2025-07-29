@@ -2,33 +2,42 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from typing import List, Optional
 
+color_map = {
+    "QR Sort": "C0",
+    "Radix Sort": "C1",
+    "Counting Sort": "C2",
+    "Quicksort": "C3",
+    "Merge Sort": "green"
+}
 
-def plot_from_csv(ax, csv_file: str, x_col: str, exclude_cols: Optional[List[str]] = None, x_scale: float = 1.0) -> float:
+
+
+def plot_from_csv(ax, csv_file: str, x_col: str, include_cols: Optional[List[str]] = None, x_scale: float = 1.0) -> float:
     """
-    Plot data from a CSV file onto a given Axes subplot, excluding specified columns.
+    Plot specified columns from a CSV file onto a given Axes subplot, preserving column order.
 
     :param ax: matplotlib Axes for plotting
     :param csv_file: Path to CSV file
     :param x_col: Column name for x-axis data
-    :param exclude_cols: List of column names to exclude from plotting
+    :param include_cols: List of column names to include in plotting (in order). If None, include all except x_col.
     :param x_scale: Scaling factor applied to x-axis values
     :return: Maximum y-value among plotted columns
     """
     df = pd.read_csv(csv_file)
 
-    if exclude_cols is None:
-        exclude_cols = []
+    if include_cols is None:
+        include_cols = [col for col in df.columns if col != x_col]
 
-    y_cols = [col for col in df.columns if col not in exclude_cols + [x_col]]
     x_values = df[x_col] / x_scale
-
     max_y = 0
-    for col in y_cols:
+
+    for col in include_cols:
         y_values = df[col] / 1000  # Convert to milliseconds
-        ax.plot(x_values, y_values, label=col)
+        ax.plot(x_values, y_values, label=col, color=color_map[col])
         max_y = max(max_y, y_values.max())
 
     return max_y
+
 
 
 def add_text_to_ax(ax, text, pos_x=0.95, pos_y=0.05):
@@ -45,32 +54,28 @@ def add_text_to_ax(ax, text, pos_x=0.95, pos_y=0.05):
             bbox=dict(facecolor='white', alpha=0.5, edgecolor='none', boxstyle='round,pad=0.1'))
 
 
-def main():
+def make_qr_rs_graph():
     """
     Main function to generate and save the plots.
     """
     file_paths = [
-        #("./results/0min_value-10000max_value.csv", "m = 10,000"),
-        ("./results/0min_value-100000max_value.csv", "m = 100,000"),
-        ("./results/0min_value-1000000max_value.csv", "m = 1,000,000"),
-        ("./results/0min_value-10000000max_value.csv", "m = 10,000,000"),
-        ("./results/0min_value-100000000max_value.csv", "m = 100,000,000"),
-        ("./results/0min_value-1000000000max_value.csv", "m = 1,000,000,000"),
-        ("./results/0min_value-10000000000max_value.csv", "m = 10,000,000,000"),
-        ("./results/0min_value-100000000000max_value.csv", "m = 100,000,000,000"),
-        ("./results/0min_value-1000000000000max_value.csv", "m = 1,000,000,000,000"),
-        ("./results/0min_value-10000000000000max_value.csv", "m = 10,000,000,000,000"),
+        ("./results/0min_value-100000max_value.csv", "range = $10^5$"),
+        ("./results/0min_value-1000000max_value.csv", "range = $10^6$"),
+        ("./results/0min_value-10000000max_value.csv", "range = $10^7$"),
+        ("./results/0min_value-100000000max_value.csv", "range = $10^8$"),
+        ("./results/0min_value-1000000000max_value.csv", "range = $10^9$"),
+        ("./results/0min_value-10000000000max_value.csv", "range = $10^{10}$"),
     ]
 
-    labels = ["A", "B", "C", "D", "E", "F", "G", "H"]
+    labels = ["A", "B", "C", "D", "E", "F"]#, "G", "H"]
     x_col = "Length"
-    exclude_cols = ["Quicksort", "Merge Sort", "Counting Sort"]
+    columns_to_plot = ["QR Sort", "Radix Sort"]
 
-    fig, axes = plt.subplots(4, 2, figsize=(14, 10))
+    fig, axes = plt.subplots(3, 2, figsize=(11, 8))
     max_y_values = []
 
     for ax, (csv_file, m_text), label in zip(axes.flatten(), file_paths, labels):
-        max_y = plot_from_csv(ax, csv_file, x_col, exclude_cols, x_scale=1e3)
+        max_y = plot_from_csv(ax, csv_file, x_col, columns_to_plot, x_scale=1e3)
         max_y_values.append(max_y)
         ax.set_xlabel("Array Length ($10^3$)")
         ax.set_ylabel("Milliseconds")
@@ -79,13 +84,43 @@ def main():
 
     global_max_y = max(max_y_values)
     for ax in axes.flatten():
+        ax.set_xlim(0, 1_010)  # Since x_scale=1e3, this corresponds to 1,000,000 in actual data
         ax.set_ylim(0, global_max_y * 1.05)
 
     axes[0, 0].legend(loc='upper left', fontsize=12)
 
     fig.tight_layout()
-    fig.savefig("figure_qr_vs_radix_8.png", dpi=600)
+    fig.savefig("figure_qr_vs_radix_6.png", dpi=600)
     fig.show()
+
+
+def make_qr_qs_ms_graph():
+    filepath = "./results_qr_ms_qs/0min_value-10000000000max_value.csv"
+
+    x_col = "Length"
+    columns_to_plot = ["QR Sort", "Quicksort", "Merge Sort"]
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+
+    max_y = plot_from_csv(ax, filepath, x_col, columns_to_plot, x_scale=1e3)
+    ax.set_xlabel("Array Length ($10^3$)")
+    ax.set_ylabel("Milliseconds")
+    ax.set_title(f"QR Sort vs Comparison-Based Algorithms")
+    add_text_to_ax(ax, "range = $10^{10}$")
+
+    ax.set_xlim(0, 1_010)  # Since x_scale=1e3, this corresponds to 1,000,000 in actual data
+    ax.set_ylim(0, max_y * 1.05)
+
+    ax.legend(loc='upper left', fontsize=12)
+
+    fig.tight_layout()
+    fig.savefig("comparison_based_algs.png", dpi=600)
+    fig.show()
+
+
+def main() -> None:
+    make_qr_rs_graph()
+    make_qr_qs_ms_graph()
 
 
 if __name__ == '__main__':
