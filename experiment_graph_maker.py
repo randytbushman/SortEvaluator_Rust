@@ -59,12 +59,12 @@ def make_qr_rs_graph():
     Main function to generate and save the plots.
     """
     file_paths = [
-        ("./results/0min_value-100000max_value.csv", "range = $10^5$"),
-        ("./results/0min_value-1000000max_value.csv", "range = $10^6$"),
-        ("./results/0min_value-10000000max_value.csv", "range = $10^7$"),
-        ("./results/0min_value-100000000max_value.csv", "range = $10^8$"),
-        ("./results/0min_value-1000000000max_value.csv", "range = $10^9$"),
-        ("./results/0min_value-10000000000max_value.csv", "range = $10^{10}$"),
+        ("./results_qr_rs/0min_value-100000max_value.csv", "range = $10^5$"),
+        ("./results_qr_rs/0min_value-1000000max_value.csv", "range = $10^6$"),
+        ("./results_qr_rs/0min_value-10000000max_value.csv", "range = $10^7$"),
+        ("./results_qr_rs/0min_value-100000000max_value.csv", "range = $10^8$"),
+        ("./results_qr_rs/0min_value-1000000000max_value.csv", "range = $10^9$"),
+        ("./results_qr_rs/0min_value-10000000000max_value.csv", "range = $10^{10}$"),
     ]
 
     labels = ["A", "B", "C", "D", "E", "F"]#, "G", "H"]
@@ -95,10 +95,10 @@ def make_qr_rs_graph():
 
 
 def make_qr_qs_ms_graph():
-    filepath = "./results_qr_ms_qs/0min_value-10000000000max_value.csv"
+    filepath = "results_qr_ms_qs/0min_value-10000000000max_value.csv"
 
     x_col = "Length"
-    columns_to_plot = ["QR Sort", "Quicksort", "Merge Sort"]
+    columns_to_plot = ["QR Sort", "Quicksort", "Merge Sort", "Radix Sort"]
 
     fig, ax = plt.subplots(figsize=(10, 6))
 

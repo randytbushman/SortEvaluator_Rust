@@ -52,20 +52,6 @@ struct SortingExperiment {
 }
 
 impl SortingExperiment {
-    fn new_qs_ms_rs_qr() -> Self {
-        Self {
-            trials:         10,
-            start_length:   10_000,
-            end_length:     1_000_000,
-            length_inc:     10_000,
-            min_value:      0,
-            max_values: (4..8).map(|exp| 10i64.pow(exp)).collect(),
-            output_dir: "./results_all",
-            algorithm_name_headers: vec!["Quicksort", "Merge Sort", "Radix Sort", "QR Sort"],
-            algorithm_functions: vec![test_quicksort, test_merge_sort, test_radix_sort, test_qr_sort],
-            random_seed_rng: StdRng::seed_from_u64(42),
-        }
-    }
 
     fn new_rs_qr() -> Self {
         Self {
@@ -74,15 +60,15 @@ impl SortingExperiment {
             end_length:     1_000_000,
             length_inc:     10_000,
             min_value:      0,
-            max_values: (4..=12).map(|exp| 10i64.pow(exp)).collect(),
-            output_dir: "./results_radix_qr_dev",
+            max_values: (5..=10).map(|exp| 10i64.pow(exp)).collect(),
+            output_dir: "./results_qr_rs",
             algorithm_name_headers: vec!["Radix Sort", "QR Sort"],
             algorithm_functions: vec![test_radix_sort, test_qr_sort],
             random_seed_rng: StdRng::seed_from_u64(42),
         }
     }
 
-    fn new_qr_ms_qs() -> Self {
+    fn new_qs_ms_rs_qr() -> Self {
         Self {
             trials:         10,
             start_length:   10_000,
@@ -91,8 +77,8 @@ impl SortingExperiment {
             min_value:      0,
             max_values: vec![10i64.pow(10)],
             output_dir: "./results_qr_ms_qs",
-            algorithm_name_headers: vec!["Quicksort", "Merge Sort", "QR Sort"],
-            algorithm_functions: vec![test_quicksort, test_merge_sort, test_qr_sort],
+            algorithm_name_headers: vec!["Quicksort", "Merge Sort", "Radix Sort", "QR Sort"],
+            algorithm_functions: vec![test_quicksort, test_merge_sort, test_radix_sort, test_qr_sort],
             random_seed_rng: StdRng::seed_from_u64(42),
         }
     }
@@ -183,7 +169,7 @@ fn write_string_to_file(filename: &str, data: &String) {
 }
 
 fn main() {
-    SortingExperiment::new_qr_ms_qs().run_experiment();
+    SortingExperiment::new_rs_qr().run_experiment();
     SortingExperiment::new_qs_ms_rs_qr().run_experiment();
     //SortingExperiment::new_all_experiment().run_experiment();
 }
