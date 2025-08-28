@@ -1,7 +1,6 @@
 extern crate rand;
-mod sorting;
 mod utils;
-use crate::sorting::{counting_sort, merge_sort, qr_sort, quicksort, radix_sort};
+mod sorting;
 use crate::utils::{is_sorted, linspace};
 use itertools::Itertools;
 use rand::SeedableRng;
@@ -11,6 +10,11 @@ use std::fmt::Write;
 use std::fs::File;
 use std::io::Write as IOWrite;
 use std::time::Instant;
+use crate::sorting::merge_sort::test_merge_sort;
+use crate::sorting::qr_sort::test_qr_sort;
+use crate::sorting::quicksort::test_quicksort;
+use crate::sorting::radix_sort::test_radix_sort;
+use crate::sorting::counting_sort::test_counting_sort;
 
 struct SortingBuffers {
     aux_buffer: Vec<i64>,
@@ -48,7 +52,7 @@ struct SortingExperiment {
 }
 
 impl SortingExperiment {
-    fn new_all() -> Self {
+    fn new_qs_ms_rs_qr() -> Self {
         Self {
             trials:         10,
             start_length:   10_000,
@@ -57,8 +61,8 @@ impl SortingExperiment {
             min_value:      0,
             max_values: (4..8).map(|exp| 10i64.pow(exp)).collect(),
             output_dir: "./results_all",
-            algorithm_name_headers: vec!["Quicksort", "Merge Sort", "Counting Sort", "Radix Sort", "QR Sort"],
-            algorithm_functions: vec![run_quicksort, run_merge_sort, run_counting_sort, run_radix_sort, run_qr_sort],
+            algorithm_name_headers: vec!["Quicksort", "Merge Sort", "Radix Sort", "QR Sort"],
+            algorithm_functions: vec![test_quicksort, test_merge_sort, test_radix_sort, test_qr_sort],
             random_seed_rng: StdRng::seed_from_u64(42),
         }
     }
@@ -73,12 +77,12 @@ impl SortingExperiment {
             max_values: (4..=12).map(|exp| 10i64.pow(exp)).collect(),
             output_dir: "./results_radix_qr_dev",
             algorithm_name_headers: vec!["Radix Sort", "QR Sort"],
-            algorithm_functions: vec![run_radix_sort, run_qr_sort],
+            algorithm_functions: vec![test_radix_sort, test_qr_sort],
             random_seed_rng: StdRng::seed_from_u64(42),
         }
     }
 
-    fn new_qr_ms_qs_cs() -> Self {
+    fn new_qr_ms_qs() -> Self {
         Self {
             trials:         10,
             start_length:   10_000,
@@ -88,7 +92,7 @@ impl SortingExperiment {
             max_values: vec![10i64.pow(10)],
             output_dir: "./results_qr_ms_qs",
             algorithm_name_headers: vec!["Quicksort", "Merge Sort", "QR Sort"],
-            algorithm_functions: vec![run_quicksort, run_merge_sort, run_qr_sort],
+            algorithm_functions: vec![test_quicksort, test_merge_sort, test_qr_sort],
             random_seed_rng: StdRng::seed_from_u64(42),
         }
     }
@@ -178,85 +182,8 @@ fn write_string_to_file(filename: &str, data: &String) {
     file.write_all(data.as_bytes()).unwrap();
 }
 
-fn run_merge_sort(arr: &mut [i64], sorting_buffers: &mut SortingBuffers, range: usize) -> u128 {
-    // Declare all heap variables before marking start time
-    let aux_arr_buffer = &mut sorting_buffers.aux_buffer[..arr.len()];
-
-    // Begin timer just before algorithm invocation
-    let time_tracker = Instant::now();
-    merge_sort(arr, aux_arr_buffer);
-    let elapsed = time_tracker.elapsed().as_micros();
-
-    // Reset the buffer slices
-    aux_arr_buffer.fill(0);
-    elapsed
-}
-
-fn run_quicksort(arr: &mut [i64], sorting_buffers: &mut SortingBuffers, range: usize) -> u128 {
-    // Begin timer just before algorithm invocation
-    let start = Instant::now();
-    quicksort(arr);
-
-    // Return the elapsed time
-    start.elapsed().as_micros()
-}
-
-fn run_counting_sort(arr: &mut [i64], sorting_buffers: &mut SortingBuffers, range: usize) -> u128 {
-    // Create mutable slices of the buffers
-    let aux_arr_buffer = &mut sorting_buffers.aux_buffer[..arr.len()];
-    let counting_buffer = &mut sorting_buffers.counting_buffer[..=range];
-
-    // Track the time for Counting Sort to run
-    let time_tracker = Instant::now();
-    counting_sort(arr, None, aux_arr_buffer, counting_buffer);
-    let elapsed = time_tracker.elapsed().as_micros();
-
-    // Reset the buffer slices
-    aux_arr_buffer.fill(0);
-    counting_buffer.fill(0);
-
-    elapsed
-}
-
-fn run_qr_sort(arr: &mut [i64], sorting_buffers: &mut SortingBuffers, range: usize) -> u128 {
-    // Create mutable slices of the buffers
-    let aux_arr_buffer = &mut sorting_buffers.aux_buffer[..arr.len()];
-    let key_buffer = &mut sorting_buffers.keys_buffer[..arr.len()];
-    let counting_buffer = &mut sorting_buffers.counting_buffer[..=range.isqrt()];
-
-    // Track the time for Counting Sort to run
-    let time_tracker = Instant::now();
-    qr_sort(arr, aux_arr_buffer, key_buffer, counting_buffer);
-    let elapsed = time_tracker.elapsed().as_micros();
-
-    // Reset the buffer slices
-    aux_arr_buffer.fill(0);
-    key_buffer.fill(0);
-    counting_buffer.fill(0);
-
-    elapsed
-}
-
-fn run_radix_sort(arr: &mut [i64], sorting_buffers: &mut SortingBuffers, range: usize) -> u128 {
-    // Create mutable slices of the buffers
-    let aux_arr_buffer = &mut sorting_buffers.aux_buffer[..arr.len()];
-    let key_buffer = &mut sorting_buffers.keys_buffer[..arr.len()];
-    let counting_buffer = &mut sorting_buffers.counting_buffer[..arr.len()];
-
-    // Track the time for Radix Sort to run
-    let time_tracker = Instant::now();
-    radix_sort(arr, aux_arr_buffer, key_buffer, counting_buffer);
-    let elapsed = time_tracker.elapsed().as_micros();
-
-    // Reset the buffer slices
-    aux_arr_buffer.fill(0);
-    key_buffer.fill(0);
-    counting_buffer.fill(0);
-
-    elapsed
-}
-
 fn main() {
-    SortingExperiment::new_qr_ms_qs_cs().run_experiment();
+    SortingExperiment::new_qr_ms_qs().run_experiment();
+    SortingExperiment::new_qs_ms_rs_qr().run_experiment();
     //SortingExperiment::new_all_experiment().run_experiment();
 }
