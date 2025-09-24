@@ -3,13 +3,28 @@ import pandas as pd
 
 FIGURE_DPI = 600
 
-# Monochrome encoding: all black, identity via dash patterns
+# Line patterns for distinct styles
 pattern_map = {
     "QR Sort": (None, None),              # solid
     "Radix Sort": (0, (1.2, 1.2)),        # dotted
     "Counting Sort": (0, (3, 2, 1.2, 2)), # dash-dot
     "Quicksort": (0, (6, 2)),             # dashed
-    "Merge Sort": (0, (5, 2, 1, 2)),      # double-dash (distinct from Quicksort)
+    "Merge Sort": (None, None),      # long+short dash
+}
+
+# Marker styles (only for Quicksort and Merge Sort)
+marker_map = {
+    # "Quicksort": "o",   # circle
+    "Merge Sort": "o",  # square
+}
+
+# Original color palette
+color_map = {
+    "QR Sort": "C0",
+    "Radix Sort": "C1",
+    "Counting Sort": "C2",
+    "Quicksort": "C3",
+    "Merge Sort": "green"
 }
 
 
@@ -22,13 +37,6 @@ def plot_from_csv(
 ) -> float:
     """
     Plot specified columns from a CSV file onto a given Axes subplot.
-
-    :param ax: matplotlib Axes for plotting
-    :param csv_file: Path to CSV file
-    :param x_col: Column name for x-axis data
-    :param include_cols: Columns to include (order preserved). None → all except x_col.
-    :param x_scale: Scaling factor applied to x-axis values
-    :return: Maximum y-value among plotted columns
     """
     df = pd.read_csv(csv_file)
 
@@ -45,9 +53,11 @@ def plot_from_csv(
             x_values,
             y_values,
             label=col,
-            color="black",
+            color=color_map.get(col, "black"),
             linestyle="-" if pattern_map[col] == (None, None) else (0, pattern_map[col][1]),
             linewidth=2.0,
+            marker=marker_map.get(col, None),
+            markevery=7,
         )
 
         max_y = max(max_y, y_values.max())
