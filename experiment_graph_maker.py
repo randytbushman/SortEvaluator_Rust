@@ -58,6 +58,7 @@ def plot_from_csv(
             linewidth=2.0,
             marker=marker_map.get(col, None),
             markevery=7,
+            markersize=8,
         )
 
         max_y = max(max_y, y_values.max())
