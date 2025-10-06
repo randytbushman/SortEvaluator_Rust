@@ -125,7 +125,7 @@ def make_qr_qs_ms_graph():
     filepath = "results_qr_ms_qs/0min_value-10000000000max_value.csv"
 
     x_col = "Length"
-    columns_to_plot = ["QR Sort", "Quicksort", "Merge Sort", "Radix Sort"]
+    columns_to_plot = ["QR Sort", "Quicksort", "Merge Sort"]#, "Radix Sort"]
 
     fig, ax = plt.subplots(figsize=(10, 6))
 
