@@ -33,7 +33,7 @@ impl SortingBuffers {
         Self {
             aux_buffer: vec![0; experiment.end_length],
             keys_buffer: vec![0; experiment.end_length],
-            counting_buffer: vec![0; ((max_range_value + 1) as usize).max(experiment.end_length)],
+            counting_buffer: vec![0; ((max_range_value.isqrt() + 1) as usize).max(experiment.end_length)],
         }
     }
 }
@@ -60,7 +60,7 @@ impl SortingExperiment {
             end_length:     1_000_000,
             length_inc:     10_000,
             min_value:      0,
-            max_values: (5..=10).map(|exp| 10i64.pow(exp)).collect(),
+            max_values: (2..=13).map(|exp| 10i64.pow(exp)).collect(),
             output_dir: "./results_qr_rs",
             algorithm_name_headers: vec!["Radix Sort", "QR Sort"],
             algorithm_functions: vec![test_radix_sort, test_qr_sort],
@@ -75,7 +75,7 @@ impl SortingExperiment {
             end_length:     1_000_000,
             length_inc:     10_000,
             min_value:      0,
-            max_values: vec![10i64.pow(10)],
+            max_values: vec![10i64.pow(11)],
             output_dir: "./results_qr_ms_qs",
             algorithm_name_headers: vec!["Quicksort", "Merge Sort", "Radix Sort", "QR Sort"],
             algorithm_functions: vec![test_quicksort, test_merge_sort, test_radix_sort, test_qr_sort],
@@ -170,6 +170,6 @@ fn write_string_to_file(filename: &str, data: &String) {
 
 fn main() {
     SortingExperiment::new_rs_qr().run_experiment();
-    SortingExperiment::new_qs_ms_rs_qr().run_experiment();
+    // SortingExperiment::new_qs_ms_rs_qr().run_experiment();
     //SortingExperiment::new_all_experiment().run_experiment();
 }
