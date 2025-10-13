@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 
 FIGURE_DPI = 600
@@ -28,13 +29,7 @@ color_map = {
 }
 
 
-def plot_from_csv(
-        ax,
-        csv_file: str,
-        x_col: str,
-        include_cols: list[str] | None = None,
-        x_scale: float = 1.0
-) -> float:
+def plot_from_csv(ax, csv_file: str, x_col: str, include_cols: list[str] | None = None, x_scale: float = 1.0) -> float:
     """
     Plot specified columns from a CSV file onto a given Axes subplot.
     """
@@ -47,7 +42,7 @@ def plot_from_csv(
     max_y = 0
 
     for col in include_cols:
-        y_values = df[col] / 1000  # Convert microseconds → ms
+        y_values = df[col] #  / 1000  # Convert microseconds → ms
 
         ax.plot(
             x_values,
@@ -83,22 +78,28 @@ def make_qr_rs_graph():
     Generate QR vs Radix plots with legends.
     """
     file_paths = [
-        ("./results_qr_rs/0min_value-100000max_value.csv", "range = $10^5$"),
+        ("./results_qr_rs/0min_value-10000max_value.csv", "range = $10^4$"),
+        #("./results_qr_rs/0min_value-100000max_value.csv", "range = $10^5$"),
         ("./results_qr_rs/0min_value-1000000max_value.csv", "range = $10^6$"),
-        ("./results_qr_rs/0min_value-10000000max_value.csv", "range = $10^7$"),
-        ("./results_qr_rs/0min_value-100000000max_value.csv", "range = $10^8$"),
-        ("./results_qr_rs/0min_value-1000000000max_value.csv", "range = $10^9$"),
-        ("./results_qr_rs/0min_value-10000000000max_value.csv", "range = $10^{10}$"),
+        #("./results_qr_rs/0min_value-10000000max_value.csv", "range = $10^7$"),
+        #("./results_qr_rs/0min_value-100000000max_value.csv", "range = $10^8$"),
+        #("./results_qr_rs/0min_value-1000000000max_value.csv", "range = $10^9$"),
+        #("./results_qr_rs/0min_value-10000000000max_value.csv", "range = $10^{10}$"),
+        ("./results_qr_rs/0min_value-100000000000max_value.csv", "range = $10^{11}$"),
+        ("./results_qr_rs/0min_value-1000000000000max_value.csv", "range = $10^{12}$"),
+        #("./results_qr_rs/0min_value-10000000000000max_value.csv", "range = $10^{13}$"),
     ]
 
-    labels = ["A", "B", "C", "D", "E", "F"]
+    labels = ["A", "B", "C", "D"] #, "E", "F", "G", "H"]#, "I", "J"]
     x_col = "Length"
     columns_to_plot = ["QR Sort", "Radix Sort"]
 
-    fig, axes = plt.subplots(3, 2, figsize=(11, 8))
+    fig, axes = plt.subplots(2, 2, figsize=(11, 6))
     max_y_values = []
 
     for ax, (csv_file, m_text), label in zip(axes.flatten(), file_paths, labels):
+
+
         max_y = plot_from_csv(ax, csv_file, x_col, columns_to_plot, x_scale=1e3)
         max_y_values.append(max_y)
         ax.set_xlabel("Array Length ($10^3$)")
@@ -114,7 +115,7 @@ def make_qr_rs_graph():
     axes[0, 0].legend(loc="upper left", fontsize=12)
 
     fig.tight_layout()
-    fig.savefig("figure_qr_vs_radix_6.png", dpi=FIGURE_DPI)
+    fig.savefig("figure_qr_vs_radix_10.png", dpi=FIGURE_DPI)
     fig.show()
 
 
